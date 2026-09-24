@@ -1,0 +1,28 @@
+# Settings live in the Dockerfile; this file only runs the image.
+services:
+  mailsink:
+    build: .
+    image: mailsink:local
+    restart: unless-stopped
+    # Publish to the test network. Bind to one host address rather than all
+    # of them if the host is also on a network that must not reach it, e.g.
+    # "10.20.0.5:25:25".
+    ports:
+      - "25:25"
+    networks:
+      - mailsink
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    # The server writes nothing, and this keeps Docker from storing even
+    # a startup error.
+    logging:
+      driver: none
+
+networks:
+  mailsink:
+    driver: bridge
+    enable_ipv6: false
+    # A fixed bridge name lets egress-lockdown.sh find the network.
+    driver_opts:
+      com.docker.network.bridge.name: br-mailsink
