@@ -60,3 +60,7 @@ network and to the Docker host itself. Inbound SMTP and its replies still
 pass. Run it as root after the container is up, and again after a reboot.
 `--remove` takes the rules out. The script assumes Docker's iptables firewall
 backend.
+
+## License
+
+GPL-3.0-or-later. See `LICENSE`.

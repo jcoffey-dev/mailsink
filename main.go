@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // mailsink is an SMTP server for test and development networks. It accepts
 // mail for an allowlist of domains and throws it away: message bodies are
 // read off the socket and discarded, never buffered or written to disk, and
