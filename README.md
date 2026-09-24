@@ -33,7 +33,55 @@ a setting, edit the Dockerfile and rebuild. A bad value fails the build.
 | `MAX_RECIPIENTS` | `100` |
 | `MAX_CONNECTIONS` | `100` |
 
-## Run
+## Install
+
+### From the registry
+
+Images for amd64 and arm64 are published at
+`registry.coffeylabs.org/jcoffey-dev/mailsink`. No login is needed to pull
+them. The tag `latest` follows `main`, and each build is also tagged with its
+short commit hash.
+
+The published image uses the default settings above. If those fit your test
+network, use it as it is. Otherwise build your own (see below), since the
+settings are compiled in and can't be changed when the container starts.
+
+With Compose, take `compose.yaml` from this repository and replace the
+`build: .` and `image:` lines with:
+
+```yaml
+    image: registry.coffeylabs.org/jcoffey-dev/mailsink:latest
+```
+
+Then:
+
+```sh
+docker compose up -d
+sudo ./egress-lockdown.sh      # optional second layer; see below
+```
+
+Without Compose:
+
+```sh
+docker network create -o com.docker.network.bridge.name=br-mailsink mailsink
+docker run -d --name mailsink --restart unless-stopped \
+  --network mailsink -p 25:25 \
+  --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+  --log-driver none \
+  registry.coffeylabs.org/jcoffey-dev/mailsink:latest
+```
+
+`egress-lockdown.sh` finds the container by its bridge name, `br-mailsink`,
+so keep that name if you use the script. To fetch just the script:
+
+```sh
+curl -fsSLO https://git.coffeylabs.org/jcoffey-dev/mailsink/raw/branch/main/egress-lockdown.sh
+chmod +x egress-lockdown.sh
+```
+
+### Build your own
+
+Clone the repository, change the settings at the top of the `Dockerfile`, then:
 
 ```sh
 docker compose up -d --build
@@ -46,6 +94,8 @@ emulation:
 ```sh
 docker buildx build --platform linux/amd64,linux/arm64 -t mailsink .
 ```
+
+## Use
 
 Point applications at the Docker host on port 25. Any username and password
 are accepted, so apps configured for authenticated SMTP work unchanged. There
