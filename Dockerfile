@@ -37,20 +37,27 @@ ARG MAX_CONNECTIONS="100"
 
 # ---------------------------------------------------------------------------
 
-FROM golang:1.27-alpine AS build
+# The compiler always runs natively and cross-compiles for the target
+# platform, so an arm64 image builds without emulation.
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
 ARG ALLOWED_DOMAINS ALLOWED_NETWORKS SMTP_HOSTNAME SMTP_PORT MAX_MESSAGE_SIZE MAX_RECIPIENTS MAX_CONNECTIONS
+ARG TARGETOS TARGETARCH
 WORKDIR /src
 COPY go.mod main.go ./
-RUN CGO_ENABLED=0 go build -trimpath -o /mailsink -ldflags "-s -w \
+RUN set -e; \
+    ldflags="-s -w \
       -X 'main.allowedDomains=${ALLOWED_DOMAINS}' \
       -X 'main.allowedNetworks=${ALLOWED_NETWORKS}' \
       -X 'main.hostname=${SMTP_HOSTNAME}' \
       -X 'main.port=${SMTP_PORT}' \
       -X 'main.maxMessageSize=${MAX_MESSAGE_SIZE}' \
       -X 'main.maxRecipients=${MAX_RECIPIENTS}' \
-      -X 'main.maxConnections=${MAX_CONNECTIONS}'" . \
- # Fail the build on a bad setting rather than at container start.
- && /mailsink -check
+      -X 'main.maxConnections=${MAX_CONNECTIONS}'"; \
+    # Fail the build on a bad setting rather than at container start. The
+    # check runs a native build, since the target binary may not run here.
+    CGO_ENABLED=0 go build -trimpath -o /tmp/check -ldflags "$ldflags" .; \
+    /tmp/check -check; \
+    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -o /mailsink -ldflags "$ldflags" .
 
 # The runtime image holds the one static binary and nothing else: no shell,
 # no MTA, no mail spool, no network tools.

@@ -40,6 +40,13 @@ docker compose up -d --build
 sudo ./egress-lockdown.sh      # optional second layer; see below
 ```
 
+The Dockerfile cross-compiles, so one build covers amd64 and arm64 without
+emulation:
+
+```sh
+docker buildx build --platform linux/amd64,linux/arm64 -t mailsink .
+```
+
 Point applications at the Docker host on port 25. Any username and password
 are accepted, so apps configured for authenticated SMTP work unchanged. There
 is no TLS: clients must allow a plaintext connection.
