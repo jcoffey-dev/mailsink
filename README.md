@@ -1,5 +1,9 @@
 # mailsink
 
+> [!NOTE]
+> Development happens on [git.coffeylabs.org/jcoffey-dev/mailsink](https://git.coffeylabs.org/jcoffey-dev/mailsink); the copy on GitHub is a read-only mirror.
+> Report issues at **[git.coffeylabs.org/jcoffey-dev/mailsink/issues](https://git.coffeylabs.org/jcoffey-dev/mailsink/issues)**, and join discussions at **[community.coffeylabs.org](https://community.coffeylabs.org)**.
+
 An SMTP server for test and development networks. Applications on other
 machines send mail to it as they would to a real server. It accepts mail for
 the domains you allow and discards it.
